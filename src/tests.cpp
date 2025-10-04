@@ -7,7 +7,13 @@ int my_strlen(char *str) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    char *length = str;
+    while (*length != '\0')
+    {
+        length++;
+    }
+
+    return length - str;
 }
 
 
@@ -19,6 +25,17 @@ void my_strcat(char *str_1, char *str_2) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    char *ppone = str_1;
+    char *pptwo = str_2;
+    for (;*ppone != '\0';ppone++);
+    for (;*pptwo != '\0';)
+    {
+        *ppone = *pptwo;
+        ppone++;
+        pptwo++;
+    }
+    *ppone = '\0';
+
 }
 
 
@@ -31,7 +48,25 @@ char* my_strstr(char *s, char *p) {
      */
 
     // IMPLEMENT YOUR CODE HERE
-    return 0;
+    if (*p == '\0')
+        return s;
+
+    bool psreturn = false;
+    for (;*s != '\0';s++)
+    {
+        char *szz = s;
+        char *pzz = p;
+        while (*pzz == *szz && *pzz != '\0')
+        {
+            pzz++,szz++;
+        }
+        if (*pzz == '\0')
+        {
+            return s;
+        }
+    } 
+        return 0;
+
 }
 
 
@@ -97,6 +132,22 @@ void rgb2gray(float *in, float *out, int h, int w) {
 
     // IMPLEMENT YOUR CODE HERE
     // ...
+    float colg = 0;
+    for (int y = 0;y < h;y++)
+    {
+        for (int x = 0 ;x < w;x++)
+        {
+            colg = 0;
+            colg += 0.2989* *in;
+            in++;
+            colg += 0.5870* *in;
+            in++;
+            colg += 0.1140* *in;
+            in++;
+            *out = colg;
+            out++;
+        }
+    }
 }
 
 // 练习5，实现图像处理算法 resize：缩小或放大图像
@@ -198,6 +249,38 @@ void resize(float *in, float *out, int h, int w, int c, float scale) {
 
     int new_h = h * scale, new_w = w * scale;
     // IMPLEMENT YOUR CODE HERE
+    for (int y = 0;y<new_h;y++)
+    {
+        for (int x = 0;x<new_w;x++)
+        {
+            int x1,x2,y1,y2;
+            float x0 = x/scale,y0 = y/scale;
+            x1 = static_cast<int>(x0), y1 = static_cast<int>(y0);
+            x2 = x1 +1,y2 = y1+1;
+            if (x1 >= 0 && x2 < w && y1 >= 0 && y2 < h)
+            {
+                for (int i = 0; i < 3 ; i++)
+                {
+                    float colgg = 0;
+                    float *tempxy = in;
+                    tempxy += (x1 + w*y2)*3+i;
+                    colgg += *tempxy *(1-x0+x1)*(1-y0+y1);
+                    tempxy = in;
+                    tempxy += (x2 + w*y2)*3+i;
+                    colgg += *tempxy *(x0-x1)*(1-y0+y1);
+                    tempxy = in;
+                    tempxy += (x1 + w*y1)*3+i;
+                    colgg += *tempxy *(1-x0+x1)*(y0-y1);
+                    tempxy = in;
+                    tempxy += (x2 + w*y1)*3+i;
+                    colgg += *tempxy *(x0-x1)*(y0-y1);
+                    float *tempnewxy = out;
+                    tempnewxy += (x + new_w*y)*3+i;
+                    *tempnewxy = colgg;
+                }
+            }
+        }
+    }
 
 }
 
@@ -221,4 +304,37 @@ void hist_eq(float *in, int h, int w) {
      */
 
     // IMPLEMENT YOUR CODE HERE
+    int arr[256] = {0};
+    float *tempxy = in;
+    for (int y = 0 ; y < h ; y++)
+    {
+        for(int x = 0; x < w ; x++)
+        {
+            int rig = (int)*tempxy;
+            if (rig<0) rig = 0;
+            if (rig>255) rig = 255;
+            arr[rig]++;
+            tempxy++;
+        }
+    }
+    int minl = 0;
+    for (;arr[minl] == 0 && minl<256;minl++);
+    int arrz[256] = {0};
+    arrz[0] = arr[0];
+    for (int i=1;i<256;i++)
+    {
+        arrz[i] = arrz[i-1] + arr[i];
+    }
+    tempxy = in;
+    for (int y = 0 ; y < h ; y++)
+    {
+        for(int x = 0; x < w ; x++)
+        {
+            int rig = (int)*tempxy;
+            if (rig<0) rig = 0;
+            if (rig>255) rig = 255;
+            *tempxy = ((arrz[rig]-arrz[minl]) / (float)((h*w)-arrz[minl]) )* 255.0f;
+            tempxy++;
+        }
+    }
 }
